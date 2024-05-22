@@ -12,7 +12,6 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   _ChatScreenState({required this.usuari});
   final FirebaseFirestore db = FirebaseFirestore.instance;
-  final List<Map<String, dynamic>> messages = [];
   final String usuari;
 
   TextEditingController textController = TextEditingController();
@@ -24,19 +23,22 @@ class _ChatScreenState extends State<ChatScreen> {
     chat.doc().set(data);
   }
 
-  void showTextMessages() async {
+  Future<List<Map<String, dynamic>>> showTextMessages() async {
+    final List<Map<String, dynamic>> messages = [];
     final chat = db.collection('chat'); // indiquem el nom de la colecció
     // Retrieve data
-    final querySnapshot = await chat.get();
-    if (querySnapshot.docs.isNotEmpty) {
-      for (var doc in querySnapshot.docs) {
-        messages.add(doc.data()); //This will print each document's data
-      }
-    } else {
-      print("No data found in the chat collection.");
-    }
-
+    chat.get().then(
+      (querySnapshot) {
+        print("Successfully completed");
+        for (var docSnapshot in querySnapshot.docs) {
+          print('${docSnapshot.id} => ${docSnapshot.data()}');
+          messages.add(docSnapshot.data());
+        }
+      },
+      onError: (e) => print("Error completing: $e"),
+    );
     print(messages);
+    return messages;
   }
 
   @override
