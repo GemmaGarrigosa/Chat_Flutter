@@ -11,17 +11,6 @@ void main() async {
     options: DefaultFirebaseOptions
         .currentPlatform, //mira en quina plataforma s'està inicialitzant
   );
-  final FirebaseFirestore db = FirebaseFirestore.instance;
-  final chat = db.collection('chat'); // indiquem el nom de la colecció
-  // Retrieve data
-  final querySnapshot = await chat.get();
-  if (querySnapshot.docs.isNotEmpty) {
-    for (var doc in querySnapshot.docs) {
-      print(doc.data()['nom']); // This will print each document's data
-    }
-  } else {
-    print("No data found in the chat collection.");
-  }
 
   runApp(const MyApp());
 }
