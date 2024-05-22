@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 
 class ChatScreen extends StatefulWidget {
+  ChatScreen({super.key, required this.usuari});
+  final String usuari;
+
   @override
-  _ChatScreenState createState() => _ChatScreenState();
+  _ChatScreenState createState() => _ChatScreenState(usuari: usuari);
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  _ChatScreenState({required this.usuari});
   final List<String> messages = [];
+  final String usuari;
 
   TextEditingController textController = TextEditingController();
 
@@ -15,6 +20,7 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {
       messages.insert(0, text);
     });
+    print(usuari);
   }
 
   @override

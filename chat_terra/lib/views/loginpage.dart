@@ -1,3 +1,4 @@
+import 'package:chat_terra/views/chatpage.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -41,7 +42,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(height: 10.0),
                 IconButton(
                   icon: Icon(Icons.send),
-                  onPressed: () => handleSubmitted(textController.text),
+                  onPressed: () {
+                    handleSubmitted(textController.text);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ChatScreen(usuari: usuari)));
+                  },
                 ),
               ],
             ),
