@@ -12,7 +12,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   _ChatScreenState({required this.usuari});
   final FirebaseFirestore db = FirebaseFirestore.instance;
-  final List<Map<String, dynamic>> messages = [];
+  List<Map<String, dynamic>> messages = [];
   final String usuari;
 
   TextEditingController textController = TextEditingController();
@@ -20,28 +20,32 @@ class _ChatScreenState extends State<ChatScreen> {
   void handleSubmitted(String text) {
     textController.clear();
     final chat = db.collection('chat');
-    final data = {"nom": usuari, "text": text};
+    final timestamp = FieldValue.serverTimestamp();
+    final data = {"nom": usuari, "text": text, "hora": timestamp};
     chat.doc().set(data);
+    messages.add(data);
+    setState(() {}); // Torna a carregar la llista
   }
 
-  void showTextMessages() async {
-    final chat = db.collection('chat'); // indiquem el nom de la colecció
-    // Retrieve data
+  Future<List<Map<String, dynamic>>> showTextMessages() async {
+    messages = [];
+    final chat = db
+        .collection('chat')
+        .orderBy('hora', descending: true); // indiquem el nom de la colecció
     final querySnapshot = await chat.get();
     if (querySnapshot.docs.isNotEmpty) {
       for (var doc in querySnapshot.docs) {
-        messages.add(doc.data()); //This will print each document's data
+        messages.add(doc.data());
       }
     } else {
       print("No data found in the chat collection.");
     }
-
     print(messages);
+    return messages;
   }
 
   @override
   Widget build(BuildContext context) {
-    showTextMessages();
     return Scaffold(
       appBar: AppBar(
         title: Text('Chat Terra'),
@@ -49,14 +53,30 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: <Widget>[
-          Flexible(
-            child: ListView.builder(
-              padding: EdgeInsets.all(8.0),
-              reverse: true,
-              itemCount: messages.length,
-              itemBuilder: (_, int index) =>
-                  buildMessage(messages[index]['text']),
-            ),
+          // Embolcallem en un Future Builder per a que la llista sigui dinàmica
+          FutureBuilder<List<Map<String, dynamic>>>(
+            future:
+                showTextMessages(), //cridem a la funció per a obtindre els missatges
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                final messages =
+                    snapshot.data!; // guardem la llista de missatges
+
+                return Flexible(
+                  child: ListView.builder(
+                    padding: EdgeInsets.all(8.0),
+                    reverse: true,
+                    itemCount: messages.length,
+                    itemBuilder: (_, int index) => buildMessage(
+                        messages[index]['text'], messages[index]['nom']),
+                  ),
+                );
+              } else if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else {
+                return Center(child: CircularProgressIndicator());
+              }
+            },
           ),
           Divider(height: 1.0),
           Container(
@@ -69,10 +89,10 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
 //Metode que retorna un widget amb el text
-  Widget buildMessage(String text) {
+  Widget buildMessage(String text, String nom) {
     return Card(
       child: ListTile(
-        title: Text('$usuari: $text'),
+        title: Text('$nom: $text'),
       ),
       shadowColor: Colors.green,
       elevation: 3,
